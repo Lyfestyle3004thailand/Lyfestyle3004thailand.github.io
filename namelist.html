@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mavelix - Namelist</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  
+  <style>
+    @keyframes bg-animate {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #e4e4e4, #1f1d1d, #1f1d1d, #e4e4e4);
+      background-size: 400% 400%;
+      animation: bg-animate 15s ease infinite;
+      font-family: 'Poppins', sans-serif;
+      color: #EDEDED;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    #loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #23272A;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.6s ease;
+    }
+
+    .loader-spinner {
+      border: 8px solid rgba(255, 255, 255, 0.1);
+      border-top: 8px solid #ffffff;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      animation: spin 1.2s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 240px;
+      background: rgba(44, 47, 51, 0);
+      backdrop-filter: blur(16px);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      color: #fff;
+      padding: 1.5rem 1rem;
+      transition: width 0.3s ease;
+      z-index: 1000;
+      box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar.collapsed {
+      width: 84px;
+    }
+
+    .sidebar-header {
+      font-size: 1.7rem;
+      font-weight: bold;
+      margin-bottom: 2.5rem;
+      text-shadow: 0 0 10px #ffffff;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar.collapsed .sidebar-header .link-text,
+    .sidebar.collapsed .menu-text {
+      display: none;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 1.2rem;
+    }
+
+    .sidebar-menu a {
+      color: #ffffffcc;
+      text-decoration: none;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .sidebar-menu a:hover {
+      background: rgba(255, 255, 255, 0);
+      color: #ffffff;
+      transform: translateX(5px);
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+    }
+
+    .sidebar-menu a i {
+      font-size: 1.2rem;
+      transition: transform 0.3s;
+    }
+
+    .sidebar-menu a:hover i {
+      transform: scale(1.2);
+    }
+
+    .toggle-btn {
+      position: absolute;
+      top: 1.2rem;
+      transition: left 0.3s ease;
+    }
+
+    .sidebar.collapsed ~ .toggle-btn {
+      left: 70px;
+    }
+
+    .sidebar:not(.collapsed) ~ .toggle-btn {
+      left: 220px;
+    }
+
+    .sidebar:not(.collapsed) ~ .header,
+    .sidebar:not(.collapsed) ~ .main-content {
+      margin-left: 220px;
+      transition: margin-left 0.3s ease;
+    }
+
+    .sidebar.collapsed ~ .header,
+    .sidebar.collapsed ~ .main-content {
+      margin-left: 60px;
+      transition: margin-left 0.3s ease;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 3rem;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 10;
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      text-shadow: 0 0 20px #ffffff;
+    }
+
+    .logo {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 0 0 10px #fefefe;
+      cursor: pointer;
+    }
+
+    .main-content {
+      text-align: center;
+      margin-top: 6rem;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      position: relative;
+      z-index: 10;
+      padding: 0 2rem;
+      
+    }
+
+    .main-content.show {
+      opacity: 1;
+    }
+
+    #particle-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ทำให้ Table โปร่งใส */
+.table {
+  background-color: transparent !important;
+  border-collapse: separate;
+  border-spacing: 0 8px; /* เว้นระยะระหว่างแถว (ดูโปร่งกว่า) */
+}
+
+.table thead {
+  background-color: rgba(255, 255, 255, 0.05) !important; /* หัวตารางเบลออ่อนๆ */
+  backdrop-filter: blur(10px);
+}
+
+.table tbody {
+  background-color: transparent !important;
+}
+
+.table th,
+.table td {
+  background-color: rgba(255, 255, 255, 0.03) !important; /* Cell โปร่งใส */
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1); /* ขอบบางๆ */
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+/* Hover effect */
+.table-hover tbody tr:hover td {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Pagination ปุ่มให้โปร่งใส + สวยขึ้น */
+.pagination .page-link {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+}
+
+.pagination .page-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* ปรับ Main Content ให้นุ่มขึ้น */
+.main-content {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+}
+
+
+  </style>
+</head>
+
+<body>
+  <canvas id="particle-canvas"></canvas>
+  
+  <!-- Sidebar -->
+  <div id="sidebar" class="">
+  </div>
+
+  <!-- Toggle Sidebar -->
+  <button id="toggleSidebar" class="toggle-btn"></button>
+
+  <!-- Loader -->
+  <div id="loader">
+    <div class="loader-spinner"></div>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo" id="logoToggle"></div>
+    <div class="header-buttons"></div>
+  </div>
+
+  <!-- Main Content (Name List) -->
+  <div class="main-content" id="main-content">
+    <h1 style="color:#fafafa; font-size: 3rem; margin: 0;">MAVELIX</h1>
+    <table class="table table-hover table-bordered">
+    <div class="table-responsive">
+        <thead>
+          <tr>
+            <th>Number</th>
+            <th>Name</th>
+            <th>Facebook</th>
+          </tr>
+          </thead>
+            <div class="credit">
+            Designed by <a href="https://www.facebook.com/jaypark.lyfestyle" target="_blank">Jaypark Lyfestyle</a> & <a href="https://web.facebook.com/mon.winterfell" target="_blank">Theboss Lyfestyle</a> | © 2025
+        </div>
+        <tbody id="namelist-body">
+          <!-- JS จะเติมตรงนี้ -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation example">
+      <ul class="pagination justify-content-center mt-4" id="pagination">
+        <!-- JS จะเติมตรงนี้ -->
+      </ul>
+    </nav>
+  </div>
+
+  <!-- JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    window.addEventListener("load", function () {
+      const loader = document.getElementById("loader");
+      const content = document.getElementById("main-content");
+      loader.style.opacity = "0";
+      setTimeout(() => {
+        loader.style.display = "none";
+        content.classList.add("show");
+      }, 600);
+    });
+
+    // Sidebar toggle logic
+    const logo = document.getElementById('logoToggle');
+    const sidebar = document.getElementById('sidebar');
+    const linkText = sidebar.querySelector('.sidebar-header .link-text');
+
+    logo.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+
+      if (!sidebar.classList.contains('collapsed')) {
+        linkText.textContent = '‎';
+      } else {
+        linkText.textContent = '';
+      }
+    });
+
+
+    // Particle Background (เหมือนเดิม)
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particlesArray;
+
+    function initCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', () => {
+      initCanvas();
+      initParticles();
+    });
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.radius = 1 + Math.random() * 3;
+        this.speedX = (Math.random() - 0.5) * 0.2;
+        this.speedY = (Math.random() - 0.5) * 0.2;
+        this.alpha = 0.1 + Math.random() * 0.3;
+      }
+
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > canvas.width) this.speedX = -this.speedX;
+        if (this.y < 0 || this.y > canvas.height) this.speedY = -this.speedY;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+        ctx.fill();
+      }
+    }
+
+    function initParticles() {
+      particlesArray = [];
+      const numberOfParticles = Math.floor(canvas.width / 10);
+      for (let i = 0; i < numberOfParticles; i++) {
+        particlesArray.push(new Particle());
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particlesArray.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animate);
+    }
+
+    initCanvas();
+    initParticles();
+    animate();
+
+    // NAME LIST + Pagination
+    const names = [
+    "Neon Mavelix [ Leader ]",
+    "Aleen Dandelions [ Leader ]",
+    "Arher Mavelix",
+    "Black Mavelix",
+    "Daquint Mavelix",
+    "Darwin Jtdstyle Mavelix",
+    "Darzy Mavelix",
+    "Daydrexm Mavelix",
+    "Duck Mavelix",
+    "Faide Mavelix",
+    "Fogus Mavelix",
+    "Highfour Mavelix",
+    "HighTong Mavelix",
+    "Insteamoeduyop Mavelix",
+    "Intro Mavelix",
+    "Jeffy Mavelix",
+    "Liptun Mavelix",
+    "Loopydolly Mavelix",
+    "Lovenowcrylater Mavelix",
+    "Lukemee Mavelix",
+    "Lxmnao Mavelix",
+    "Lynx Mavelix",
+    "Mineprint Mavelix",
+    "Ner Mavelix",
+    "Nongting Mavelix",
+    "Nongjaa Mavelix",
+    "Pipermersstyle Mavelix",
+    "Ponia Mavelix",
+    "Qewwy Mavelix",
+    "Quintdel Mavelix",
+    "Santa Mavelix",
+    "Sebastian Mavelix",
+    "Sweeteggs Mavelix",
+    "Thawin Mavelix",
+    "Baebunniè Mavelix",
+    "Edgxr Jtdstyle Mavelix",
+    "Erxn Jtdstyle Mavelix",
+    "Jz Jtdstyle Mavelix",
+    "Aya Phawha",
+    "Bebby Xjad",
+    "Blueeye Drake",
+    "Bright Phawhabestoftoxicboys",
+    "Carlyn Phawhabestoftoxicboys",
+    "Chertam Mers",
+    "Dev Lovenowcrylater",
+    "Dukdui Xjad",
+    "Est Ramwongnua",
+    "Garwin Goodyouknow",
+    "Gaxlzy Dxthreedoubleeight",
+    "Gugao Myturn",
+    "Highjack Winterfell",
+    "Igiveyouallmyheart Butyoudon'tacceptit",
+    "Ivy Whyyoukap",
+    "Jaguar Jaguar Jaguar",
+    "Jaypark Lyfestyle",
+    "Jayr Winterfell",
+    "Jayz Lyfestyle",
+    "Jeff Lyfestyle",
+    "Meili Puffs",
+    "Melon Phawha",
+    "Minedream Demo",
+    "Mira Xjad",
+    "Moji Rolie",
+    "Molly Rablxngroi",
+    "Mooyhong Phawha",
+    "Myminqx EighteenGang",
+    "NongKluai Permanent",
+    "Nongpp Highmindsmitx",
+    "Ped Phawhabestoftoxicboys",
+    "Pinkky Xjad",
+    "Premier Onlygodcanjudgeme",
+    "Shiryu Idiotstyle",
+    "Simone Mers",
+    "Tanyong Elwyn",
+    "Tum Phawha",
+    "Txr Whyyoukapp",
+    "Vail Phawha",
+    "Venus Xjad",
+    "Why Wellesley",
+    "Xiavxs Xjad",
+    "Zeyx Rion",
+    "น้องจ๋ายสเต้ปหมาเด่ก จิมิไม่เคยผ่านจูดี้ อยากมีรักแท้เหมือนเกมส์ฟีฟาย",
+    "น้องฟลุ๊ค นะครับบ",
+    "น้องเอก ค้าบบบ"
+];
+
+    const facebookLinks = [
+  "https://www.facebook.com/neon.mavelix",
+  "https://www.facebook.com/mismyzstary",
+  "https://www.facebook.com/asher.viperr",
+  "https://www.facebook.com/blackmavelix.i",
+  "https://www.facebook.com/Daquintx",
+  "https://www.facebook.com/darwin.mavelix",
+  "https://www.facebook.com/darzy.permanent",
+  "https://www.facebook.com/daydrexmi",
+  "https://www.facebook.com/61565950727992",
+  "https://www.facebook.com/faide.mavelix",
+  "https://www.facebook.com/fogusdndi",
+  "https://www.facebook.com/Highfour.Dara",
+  "https://www.facebook.com/moss.babi.1",
+  "https://www.facebook.com/nongpatchahighmind",
+  "https://www.facebook.com/intro.mavelix",
+  "https://www.facebook.com/jeffy.phawha",
+  "https://www.facebook.com/liptun.mavelix",
+  "https://www.facebook.com/dollardollar19",
+  "https://www.facebook.com/urworld.debby",
+  "https://www.facebook.com/lukemee.mavelix",
+  "https://www.facebook.com/lomnao.i.2024",
+  "https://www.facebook.com/lynx.phawha",
+  "https://www.facebook.com/mineprint.mavelix",
+  "https://www.facebook.com/oeivwprr.owipwjcd",
+  "https://www.facebook.com/tungtingkub.pom",
+  "https://www.facebook.com/nxngcathidedphakht",
+  "https://www.facebook.com/pip.emersstyle",
+  "https://www.facebook.com/lana.lana.lana.358912",
+  "https://www.facebook.com/fran.winterfell",
+  "https://www.facebook.com/ryo.ryo.ryo.980184",
+  "https://www.facebook.com/pad.du.pad.ebeb.mich.khn",
+  "https://www.facebook.com/sebastian.saintstyle",
+  "https://www.facebook.com/sweeteggs.mavelix",
+  "https://www.facebook.com/myflowmavelix.i",
+  "https://www.facebook.com/baebiibunie.xiao",
+  "https://www.facebook.com/edgxr.mavelix",
+  "https://www.facebook.com/erxn.mavelix",
+  "https://www.facebook.com/jayce.justurndxwn",
+  "https://www.facebook.com/baerii3gmlyaya",
+  "https://www.facebook.com/bebby.chwrienys",
+  "https://www.facebook.com/blueeye.mavelix",
+  "https://www.facebook.com/bright.phawha",
+  "https://www.facebook.com/carlyn.phawhabestoftoxicboy",
+  "https://www.facebook.com/chertam.mers",
+  "https://www.facebook.com/astel.mavelix",
+  "https://www.facebook.com/dukduixjadi",
+  "https://www.facebook.com/Estacehm",
+  "https://www.facebook.com/horo.zo.9",
+  "https://www.facebook.com/abigail.egoist",
+  "https://www.facebook.com/gugao.mavelix",
+  "https://www.facebook.com/highjack.permanent",
+  "https://www.facebook.com/nongmoobel.comcxxxxxx",
+  "https://www.facebook.com/nongmarini",
+  "https://www.facebook.com/ttawanz",
+  "https://www.facebook.com/jaypark.lyfestyle",
+  "https://www.facebook.com/jayr.winterfell",
+  "https://www.facebook.com/jayz.mavelix",
+  "https://www.facebook.com/jeff.lyfestyle",
+  "https://www.facebook.com/meili.puffs",
+  "https://www.facebook.com/melon.phawha",
+  "https://www.facebook.com/nongdreamzazaa",
+  "https://www.facebook.com/profile.php?id=61562612168388",
+  "https://www.facebook.com/moji.rolie",
+  "https://www.facebook.com/molly.syrup.2024",
+  "https://www.facebook.com/mooyhong.phawha",
+  "https://www.facebook.com/myminqx.smithighmind",
+  "https://www.facebook.com/tonkluaipermanentna",
+  "https://www.facebook.com/resent.ddot",
+  "https://www.facebook.com/ped.phawhabestoftoxicboys",
+  "https://www.facebook.com/pinkky.vysander",
+  "https://www.facebook.com/Radubking",
+  "https://www.facebook.com/nongawake",
+  "https://www.facebook.com/simone.mers",
+  "https://www.facebook.com/tanyong.elwyn",
+  "https://www.facebook.com/tum.phawha",
+  "https://www.facebook.com/cody.sage.2024",
+  "https://www.facebook.com/vail.phawha",
+  "https://www.facebook.com/venus.xjad",
+  "https://www.facebook.com/why.phawha",
+  "https://www.facebook.com/Sylves.V",
+  "https://www.facebook.com/dust.dust.dust.2024",
+  "https://www.facebook.com/nxng.ca.ys.tep.hma.de.k.ci.mi.mi.khey.ph",
+  "https://www.facebook.com/nxng.flukh.na.khrab.b.2025",
+  "https://www.facebook.com/nxng.xek.kha.bbb"
+];
+
+
+    const itemsPerPage = 10;
+    let currentPage = 1;
+
+    function renderTable(page) {
+      const tbody = document.getElementById('namelist-body');
+      tbody.innerHTML = '';
+      const start = (page - 1) * itemsPerPage;
+      const end = Math.min(start + itemsPerPage, names.length);
+
+      for (let i = start; i < end; i++) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${names[i]}</td>
+          <td>
+            <a href="${facebookLinks[i]}" target="_blank" class="btn btn-outline-light">
+              Profile
+            </a>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderPagination() {
+      const pageCount = Math.ceil(names.length / itemsPerPage);
+      const pagination = document.getElementById('pagination');
+      pagination.innerHTML = '';
+
+      for (let i = 1; i <= pageCount; i++) {
+        const li = document.createElement('li');
+        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        li.addEventListener('click', (e) => {
+          e.preventDefault();
+          currentPage = i;
+          renderTable(currentPage);
+          renderPagination();
+        });
+        pagination.appendChild(li);
+      }
+    }
+
+    // Initial Render
+    renderTable(currentPage);
+    renderPagination();
+  </script>
+</body>
+</html>
